@@ -1,0 +1,152 @@
+package atm;
+
+import java.io.*;
+import java.util.*;
+
+public class atm {
+    private static final Scanner scanner = new Scanner(System.in);
+    private static List<String> transactionHistory = new ArrayList<>();
+    private static String pin;
+    private static double defaultBalance;
+
+    public static void main(String[] args) {
+        initializeDefaults();
+        if (authenticate()) {
+            startATM();
+        } else {
+            System.out.println("Authentication failed. Exiting...");
+        }
+    }
+
+    private static void initializeDefaults() {
+        pin = "1234";
+        defaultBalance = 50000;
+    }
+
+    private static boolean authenticate() {
+        int attempts = 5;
+        while (attempts > 0) {
+            System.out.print("Enter your 4-digit PIN: ");
+            String enteredPin = scanner.next();
+            if (enteredPin.equals(pin)) {
+                return true;
+            } else {
+                attempts--;
+                System.out.println("Incorrect PIN. Attempts remaining: " + attempts);
+            }
+        }
+        return false;
+    }
+
+    private static void startATM() {
+        while (true) {
+            atmMenu();
+        }
+    }
+
+    private static void atmMenu() {
+        System.out.println("\n--- ATM Menu ---");
+        System.out.println("1. Account Balance Inquiry");
+        System.out.println("2. Cash Withdrawal");
+        System.out.println("3. Cash Deposit");
+        System.out.println("4. Change PIN");
+        System.out.println("5. Mini Statement");
+        System.out.println("6. Exit");
+        System.out.print("Enter your choice: ");
+        int choice = scanner.nextInt();
+
+        switch (choice) {
+            case 1:
+                viewBalance();
+                break;
+            case 2:
+                withdrawMoney();
+                break;
+            case 3:
+                depositMoney();
+                break;
+            case 4:
+                changePin();
+                break;
+            case 5:
+                miniStatement();
+                break;
+            case 6:
+                System.out.println("Thank you for using the ATM. Goodbye!");
+                System.exit(0);
+                break;
+            default:
+                System.out.println("Invalid choice. Try again.");
+        }
+    }
+
+    private static void viewBalance() {
+        System.out.println("Your current balance is: ₹" + defaultBalance);
+    }
+
+    private static void withdrawMoney() {
+        System.out.print("Enter amount to withdraw: ");
+        double amount = scanner.nextDouble();
+
+        if (amount <= 0) {
+            System.out.println("Invalid amount. Try again.");
+            return;
+        }
+
+        if (!updateBalance(-amount)) {
+            System.out.println("Insufficient balance.");
+        } else {
+            System.out.println("Withdrew ₹" + amount + " successfully.");
+        }
+    }
+
+    private static void depositMoney() {
+        System.out.print("Enter amount to deposit: ");
+        double amount = scanner.nextDouble();
+
+        if (amount <= 0) {
+            System.out.println("Invalid amount. Try again.");
+            return;
+        }
+
+        if (updateBalance(amount)) {
+            System.out.println("Deposited ₹" + amount + " successfully.");
+        }
+    }
+
+    private static void changePin() {
+        System.out.print("Enter your new 4-digit PIN: ");
+        String newPin = scanner.next();
+
+        if (newPin.length() != 4 || !newPin.matches("\\d+")) {
+            System.out.println("Invalid PIN format! PIN must be 4 digits.");
+            return;
+        }
+
+        pin = newPin;
+        System.out.println("PIN updated successfully!");
+    }
+
+    private static void miniStatement() {
+        if (transactionHistory.isEmpty()) {
+            System.out.println("No transactions found.");
+        } else {
+            System.out.println("\n--- Mini Statement ---");
+            for (String transaction : transactionHistory) {
+                System.out.println(transaction);
+            }
+        }
+    }
+
+    private static boolean updateBalance(double amount) {
+        double balance = defaultBalance + amount;
+
+        if (balance < 0) {
+            return false;
+        }
+
+        defaultBalance = balance;
+        transactionHistory.add(amount > 0 ? "Deposited ₹" + amount : "Withdrew ₹" + Math.abs(amount));
+        return true;
+    }
+}
